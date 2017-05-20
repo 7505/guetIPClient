@@ -49,7 +49,7 @@ void MainWindow::showHelp()
                                             如需保存多个账号，仅需要点击连接之前勾选保存账号复选框  \
                                             如需删除多余账号，仅需要右键选择删除按钮  \
                                             后期将会不断的完善，修复BUG                            \
-                                            软件就对安全、不会对信息进行泄露。账号保存在本地安装目录下programdata中（加密）\
+                                            软件就对安全、不会对信息进行泄露。账号保存在本地安装目录下programdata中（加密）, \
                                             本软件完全开源，源代码下载地址：https://github.com/7505/guetIPClient     \
                                             对于软件使用的任何问题，可联系woshidahuaidan2011@hotmail.com"),
                                             QMessageBox::Yes );
@@ -928,7 +928,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     this->hide();
     system_tray = new QSystemTrayIcon();
          //放在托盘提示信息、托盘图标
-    system_tray ->setToolTip(QStringLiteral("双击打开界面,右键可选择关闭程序，单击可查询余额"));
+    system_tray ->setToolTip(QStringLiteral("双击打开界面,右键可选择关闭程序，单击鼠标中键可查询余额"));
     system_tray ->setIcon(QIcon("./ico/icon.png"));
 
 
@@ -940,7 +940,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     system_tray->show();
 
     system_tray->showMessage(QStringLiteral("温馨提示"), QStringLiteral("guetIPClient已隐藏到托盘，\
-                                                                            双击打开界面,右键可选择关闭程序，单击可查询余额"));
+                                                                            双击打开界面,右键可选择关闭程序，单击鼠标中键可查询余额"));
 
     //设置右键
     QMenu   *menu = new QMenu(this);
@@ -967,6 +967,7 @@ void MainWindow::showWidget(bool ok)
 }
 void MainWindow::quitWidget(bool ok)
 {
+      system_tray->hide();
       QApplication::exit();
 }
 
@@ -975,18 +976,19 @@ void MainWindow::iconIsActived(QSystemTrayIcon::ActivationReason reason)
     switch(reason)
     {
         //点击托盘显示窗口
-        case QSystemTrayIcon::Trigger:
+        case QSystemTrayIcon::DoubleClick:
         {
          //、、showNormal();
-            system_tray ->showMessage(QStringLiteral("余额查询"), balance->text());
+            system_tray->hide();
+            this->show();
+
             break;
         }
          //双击托盘显示窗口
-        case QSystemTrayIcon::DoubleClick:
+        case QSystemTrayIcon::MiddleClick:
         {
 
-             system_tray->hide();
-             this->show();
+            system_tray ->showMessage(QStringLiteral("余额查询"), balance->text());
             break;
          }
          //右键
