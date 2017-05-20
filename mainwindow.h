@@ -94,6 +94,8 @@ private:
     unsigned short keyNumber;
     QString currentName;//当前用户名
 
+     QSystemTrayIcon *system_tray ;//托盘
+
 
 private:
     void openclient();
@@ -127,6 +129,11 @@ private slots:
     void userRightmouseCopy(bool);
     void userRightmousePaste(bool);
     void showHelp();
+    void iconIsActived(QSystemTrayIcon::ActivationReason reason);
+
+    void showWidget(bool );
+    void quitWidget(bool );
+
     
 
 protected:

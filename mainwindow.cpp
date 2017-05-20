@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
   //  writePwdFile();
     //openPwdFile();
 
+    this->setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
+    //this->setFixedSize(this->width(), this->height());
+
 
 }
 
@@ -47,6 +50,7 @@ void MainWindow::showHelp()
                                             如需删除多余账号，仅需要右键选择删除按钮  \
                                             后期将会不断的完善，修复BUG                            \
                                             软件就对安全、不会对信息进行泄露。账号保存在本地安装目录下programdata中（加密）\
+                                            本软件完全开源，源代码下载地址：https://github.com/7505/guetIPClient     \
                                             对于软件使用的任何问题，可联系woshidahuaidan2011@hotmail.com"),
                                             QMessageBox::Yes );
 }
@@ -242,7 +246,7 @@ void MainWindow::setShowStyle()
 
      //设置图标
     QImage  picture;
-    picture.load(QStringLiteral("../guet.png"));           // load picture
+    picture.load(QStringLiteral("./ico/guet.png"));           // load picture
    // qDebug()<<picture.data();
     guetPic->setPixmap(QPixmap::fromImage(picture));
 
@@ -629,6 +633,18 @@ void MainWindow::readPendingDatagrams()
 
 void MainWindow::startConnect()
 {
+    if(userName->currentText().isEmpty() ||password->text().isEmpty())
+    {
+
+
+        QMessageBox::information(NULL,
+                                 QStringLiteral("提示信息"),
+                                 QStringLiteral("密码或用户名不许为空。"),
+                                                QMessageBox::Yes );
+      return;
+    }
+
+
     if(savePW->checkState()== Qt::Checked)
         writePwdFile();
 
@@ -904,21 +920,83 @@ QStringList MainWindow::get_mac()
 }
 
 
+
+//关闭是最小化到托盘
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     //TODO: 在退出窗口之前，实现希望做的操作
-    //隐藏程序主窗口
-    qDebug()<<"AAAAAA";
-       this->hide();
+    this->hide();
+    system_tray = new QSystemTrayIcon();
+         //放在托盘提示信息、托盘图标
+    system_tray ->setToolTip(QStringLiteral("双击打开界面,右键可选择关闭程序，单击可查询余额"));
+    system_tray ->setIcon(QIcon("./ico/icon.png"));
 
-       //新建QSystemTrayIcon对象
-       QSystemTrayIcon *mSysTrayIcon = new QSystemTrayIcon(this);
-       //新建托盘要显示的icon
-       QIcon icon = QIcon("../icon.png");
-       //将icon设到QSystemTrayIcon对象中
-       mSysTrayIcon->setIcon(icon);
-       //当鼠标移动到托盘上的图标时，会显示此处设置的内容
-       mSysTrayIcon->setToolTip(QObject::trUtf8("测试系统托盘图标"));
-       //在系统托盘显示此对象
-       mSysTrayIcon->show();
+
+    event->ignore();
+
+   //// if(system_tray->isVisible())
+  ///      return;
+
+    system_tray->show();
+
+    system_tray->showMessage(QStringLiteral("温馨提示"), QStringLiteral("guetIPClient已隐藏到托盘，\
+                                                                            双击打开界面,右键可选择关闭程序，单击可查询余额"));
+
+    //设置右键
+    QMenu   *menu = new QMenu(this);
+    QAction *action_show = new QAction(this);
+    QAction *action_quit = new QAction(this);
+    action_show->setText(QStringLiteral("显示"));
+    action_quit->setText(QStringLiteral("退出"));
+    menu->addAction(action_show);
+    menu->addAction(action_quit);
+
+    system_tray->setContextMenu(menu);
+
+    connect(action_show, SIGNAL(triggered(bool)), this, SLOT(showWidget(bool)));
+    connect(action_quit, SIGNAL(triggered(bool)), this, SLOT(quitWidget(bool)));
+
+    connect(system_tray , SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+            this, SLOT(iconIsActived(QSystemTrayIcon::ActivationReason)));
 }
+
+void MainWindow::showWidget(bool ok)
+{
+    system_tray->hide();
+    this->show();
+}
+void MainWindow::quitWidget(bool ok)
+{
+      QApplication::exit();
+}
+
+void MainWindow::iconIsActived(QSystemTrayIcon::ActivationReason reason)
+{
+    switch(reason)
+    {
+        //点击托盘显示窗口
+        case QSystemTrayIcon::Trigger:
+        {
+         //、、showNormal();
+            system_tray ->showMessage(QStringLiteral("余额查询"), balance->text());
+            break;
+        }
+         //双击托盘显示窗口
+        case QSystemTrayIcon::DoubleClick:
+        {
+
+             system_tray->hide();
+             this->show();
+            break;
+         }
+         //右键
+         case QSystemTrayIcon::Context:
+         {
+            // showNormal();
+            break;
+         }
+         default:
+            break;
+     }
+}
+
